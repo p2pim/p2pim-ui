@@ -1,10 +1,11 @@
 <template>
-  <div class="header">
-    <a href="."><div>P2pim</div></a>
-    <div>
-      <wallet-connector @change="$emit('ethereum-address-change', $event)" />
-    </div>
-  </div>
+  <nav class="navbar justify-content-between">
+    <a
+      class="navbar-brand"
+      href="."
+    ><div>P2pim</div></a>
+    <wallet-connector @change="$emit('ethereum-address-change', $event)" />
+  </nav>
 </template>
 
 <script>

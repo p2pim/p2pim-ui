@@ -2,6 +2,8 @@
   <div class="wallet-connector">
     <button
       v-if="!address"
+      type="button"
+      class="btn btn-primary"
       @click="connectWallet"
     >
       Connect Wallet
