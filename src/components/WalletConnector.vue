@@ -9,7 +9,7 @@
       Connect Wallet
     </button>
     <div v-if="address">
-      {{ address }}
+      {{ shortAddress }}
     </div>
   </div>
 </template>
@@ -19,23 +19,41 @@ export default {
   name: 'WalletConnector',
   data: function () {
     return {
-      address: null
+      address: null,
     }
   },
   methods: {
+    handleChainChanged: function (chainId) {
+      console.log(chainId);
+    },
+    handleAccountsChanged: function (accounts) {
+      if (accounts.length === 0) {
+        this.address = null;
+      } else {
+        this.address = accounts[0];
+      }
+      this.$emit('change', this.address)
+    },
     connectWallet: async function () {
       if (!window.ethereum) {
         window.alert('There is no provider!')
       } else {
         const ethereum = window.ethereum
-        const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
-        console.log(accounts)
-        if (accounts[0]) {
-          this.address = accounts[0]
-          this.$emit('change', this.address)
-        }
+        const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+        await this.handleAccountsChanged(accounts);
+
+        ethereum.on('chainChanged', this.handleChainChanged);
+        ethereum.on('accountsChanged', this.handleAccountsChanged);
+
+        const chainId = await ethereum.request({ method: 'eth_chainId'});
+        this.handleChainChanged(chainId);
       }
     }
-  }
+  },
+  computed: {
+    shortAddress: function () {
+      return this.address.substring(0, 6) + '...' + this.address.substring(this.address.length - 4);
+    },
+  },
 }
 </script>
