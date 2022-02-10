@@ -22,6 +22,11 @@ export default {
       address: null,
     }
   },
+  watch: {
+    address(newAddress) {
+      this.$emit('change', newAddress);
+    }
+  },
   methods: {
     handleChainChanged: function (chainId) {
       console.log(chainId);
@@ -32,7 +37,6 @@ export default {
       } else {
         this.address = accounts[0];
       }
-      this.$emit('change', this.address)
     },
     connectWallet: async function () {
       if (!window.ethereum) {
