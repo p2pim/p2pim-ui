@@ -1,5 +1,5 @@
 <template>
-  <div class="wallet-connector">
+  <div>
     <button
       v-if="!address"
       type="button"

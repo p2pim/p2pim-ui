@@ -1,8 +1,10 @@
 <template>
   <div id="app">
     <page-header @ethereum-address-change="ethAddress = $event" />
-    <deposit-form v-if="ethAddress" v-bind:eth-address="ethAddress" v-bind:web3="web3" />
-    <p v-else>Please connect to your wallet</p>
+    <section class="container">
+      <deposit-form v-if="ethAddress" v-bind:eth-address="ethAddress" v-bind:web3="web3" />
+      <p v-else>Please connect to your wallet</p>
+    </section>
   </div>
 </template>
 

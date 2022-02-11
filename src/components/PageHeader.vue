@@ -1,5 +1,5 @@
 <template>
-  <nav class="navbar justify-content-between">
+  <nav class="navbar navbar-default justify-content-between">
     <a
       class="navbar-brand"
       href="."

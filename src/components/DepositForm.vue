@@ -1,29 +1,33 @@
 <template>
-  <div>
-    <h4>Deposit</h4>
-    <form>
-      <div>
-        <label for="token">Token</label>
-        <input id="token" class="form-control" type="text" placeholder="Token" v-model="inputToken"/>
+  <div class="panel panel-default">
+    <div class="panel-header">
+      <h4>Deposit</h4>
+    </div>
+    <div class="panel-body">
+      <form>
+        <div>
+          <label for="token">Token</label>
+          <input id="token" class="form-control" type="text" placeholder="Token" v-model="inputToken"/>
 
-      </div>
-      <div>
-        <label for="amount">Amount</label>
-        <input id="amount" class="form-control" type="number" placeholder="0.0" v-model="inputAmount"/>
-      </div>
-      <div>
-        <button
-          v-if="needsAllowance"
-          v-on:click="approveAllowance"
-          type="button"
-          class="btn btn-primary"
-        >
-        Allow P2pim to use your tokens
-        </button>
-      </div>
-      <button v-on:click="deposit" type="button" class="btn btn-primary" v-bind:disabled="submitDisabled">Deposit</button>
-    </form>
-    <div>Balance: {{ balance }}</div>
+        </div>
+        <div>
+          <label for="amount">Amount</label>
+          <input id="amount" class="form-control" type="number" placeholder="0.0" v-model="inputAmount"/>
+        </div>
+        <div>
+          <button
+            v-if="needsAllowance"
+            v-on:click="approveAllowance"
+            type="button"
+            class="btn btn-primary"
+          >
+          Allow P2pim to use your tokens
+          </button>
+        </div>
+        <button v-on:click="deposit" type="button" class="btn btn-primary" v-bind:disabled="submitDisabled">Deposit</button>
+      </form>
+      <div>Balance: {{ balance }}</div>
+    </div>
   </div>
 </template>
 
