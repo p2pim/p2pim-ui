@@ -7,3 +7,4 @@ This file is temporary and the items should be move to issue management system
 * oasis.app when does not find a cookie needs to verify the wallet with a signature for security
 * Listen for address changes from window.ethereum
 * Configure ESLint in order to prevent bad formatting in files
+* Should we move to ethers?

@@ -5,10 +5,6 @@ import App from './App.vue'
 
 new Vue({
   el: '#app',
-  data: function () {
-    return {
-      message: 'Hello Vue!'
-    }
-  },
+  data: {},
   render: h => h(App)
 })
