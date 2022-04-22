@@ -1,12 +1,11 @@
 <template>
   <div id="app">
-    <page-header @ethereum-address-change="ethAddress = $event" />
+    <page-header @ethereum-change="ethereum = $event" />
     <section class="container">
-      <deposit-form
-        v-if="ethAddress"
-        :eth-address="ethAddress"
-        :web3="web3"
-      />
+      <div v-if="ethAddress">
+        <p2pim-balance />
+        <deposit-form />
+      </div>
       <p v-else>
         Please connect to your wallet
       </p>
@@ -15,28 +14,34 @@
 </template>
 
 <script>
-import PageHeader from './components/PageHeader.vue';
+import P2pimBalance from './components/P2pimBalance.vue';
 import DepositForm from './components/DepositForm.vue';
-import Web3 from 'web3';
+import PageHeader from './components/PageHeader.vue';
 
 export default {
   name: 'App',
   components: {
     PageHeader,
+    P2pimBalance,
     DepositForm,
   },
-  data: function () {
-    return {
-      ethAddress: null
+  computed: {
+    ethAddress: function() {
+      console.log('Computing address');
+      return this.$store.state.account;
+    },
+    web3: function() {
+      console.log('Computing web3');
+      return this.$store.state.web3;
+    },
+    deployments: function() {
+      console.log('Computing deployments', this.$store.state.deployments);
+      return this.$store.state.deployments;
     }
   },
-  computed: {
-    web3: function() {
-      if (this.ethAddress) {
-        return new Web3(window.ethereum);
-      } else {
-        return null;
-      }
+  watch: {
+    ethAddress(e) {
+      console.log(e);
     }
   }
 }

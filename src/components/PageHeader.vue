@@ -4,7 +4,7 @@
       class="navbar-brand"
       href="."
     ><div>P2pim</div></a>
-    <wallet-connector @change="$emit('ethereum-address-change', $event)" />
+    <wallet-connector @change="test($event) /* $emit('ethereum-change', $event) */" />
   </nav>
 </template>
 
@@ -15,6 +15,12 @@ export default {
   name: 'PageHeader',
   components: {
     WalletConnector
+  },
+  methods: {
+    test(pepe) {
+      console.log("testing", pepe);
+      this.$emit('ethereum-change', pepe);
+    }
   }
 }
 </script>

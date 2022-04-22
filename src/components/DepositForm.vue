@@ -44,7 +44,7 @@
         <button
           type="button"
           class="btn btn-primary"
-          :disabled="submitDisabled"
+          :disabled="isDepositDisabled"
           @click="deposit"
         >
           Deposit
@@ -58,39 +58,44 @@
 <script>
 import IERC20 from '@openzeppelin/contracts/build/contracts/IERC20.json';
 import P2pimAdjudicator from 'p2pim-ethereum-contracts/build/contracts/P2pimAdjudicator.json';
-import P2pimMasterRecord from 'p2pim-ethereum-contracts/build/contracts/P2pimMasterRecord.json';
 import BN from 'bn.js'
+// import {mapGetters} from 'vuex';
+
 
 const MAX_UINT256 = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
 
-function contractAddress(contract, chainId) {
-  return contract.networks[chainId].address
-}
-
 export default {
   name: 'DepositForm',
-  props: {
-    ethAddress: {
-      type: String,
-      required: true,
-    },
-    web3: {
-      type: Object,
-      required: true,
-    },
-  },
   data: function () {
     return {
       inputAmount: null,
       inputToken: null,
-      balance: null,
-      allowance: null,
-      chainId: null,
-      deployments: null,
     }
   },
   computed: {
-    submitDisabled: function () {
+    web3: function () {
+      return this.$store.state.web3;
+    },
+    account: function () {
+      return this.$store.state.account;
+    },
+    deployments: function () {
+      console.log('computing deployments', this.$store.getters.deployments);
+      return this.$store.getters.deployments;
+    },
+    adjudicatorAddress: function () {
+      return this.deployments.find(deployment => deployment.token === this.inputToken).adjudicator;
+    },
+    chainId: function () {
+      return this.$store.state.chainId;
+    },
+    balance: function () {
+      return this.$store.getters.balances[this.inputToken];
+    },
+    allowance: function () {
+      return this.$store.getters.allowances[this.inputToken];
+    },
+    isDepositDisabled: function () {
       return !(this.amount &&
         this.balance &&
         this.allowance &&
@@ -98,24 +103,6 @@ export default {
         this.amount.cmp(this.allowance) <= 0 &&
         this.amount.cmp(new BN(0)) > 0
       );
-    },
-    p2pimMasterRecordContract: function () {
-      if (this.chainId) {
-        const address = contractAddress(P2pimMasterRecord, this.chainId);
-        return new this.web3.eth.Contract(P2pimMasterRecord.abi, address);
-      }
-      return null;
-    },
-    p2pimAdjudicatorContract: function () {
-      if (this.chainId && this.inputToken && this.deployments) {
-        const deployment = this.deployments.find(deployment => deployment.token === this.inputToken);
-        if (deployment) {
-          return new this.web3.eth.Contract(P2pimAdjudicator.abi, deployment.adjudicator);
-        } else {
-          console.log("This could not happen");
-        }
-      }
-      return null;
     },
     amount: function () {
       return new BN(this.inputAmount);
@@ -127,88 +114,34 @@ export default {
         this.amount.cmp(this.balance) <= 0 &&
         this.allowance.cmp(this.amount) < 0
     },
-    tokenContract: function() {
-      if (this.inputToken && this.chainId && this.deployments) {
-        return new this.web3.eth.Contract(IERC20.abi, this.inputToken);
-      }
-      return null;
-    }
-  },
-  watch: {
-    web3: {
-      handler: function(web3) {
-        web3.eth.getChainId()
-          .then(chainId => this.chainId = chainId)
-          .catch(err => console.log("TODO: Error: ", err));
-      },
-      immediate: true,
-    },
-    p2pimMasterRecordContract: function (contract) {
-      if (contract) {
-        contract.methods.deployments().call()
-          .then(deployments => {
-            this.deployments = deployments;
-          });
-      }
-    },
-    // should we use computed async https://www.npmjs.com/package/vue-async-computed?
-    tokenContract(tokenContract) {
-      this.refreshChainData(tokenContract, this.p2pimAdjudicatorContract, this.chainId);
-    },
-    p2pimAdjudicatorContract(p2pimAdjudicatorContract) {
-      this.refreshChainData(this.tokenContract, p2pimAdjudicatorContract, this.chainId);
-    },
-    chainId(chainId) {
-      this.refreshChainData(this.tokenContract, this.p2pimAdjudicatorContract, chainId);
-    },
   },
   methods: {
     deposit: function () {
-      this.p2pimAdjudicatorContract.methods
-        .deposit(this.amount, this.ethAddress)
-        .send({from: this.ethAddress})
+      const contract = new this.web3.eth.Contract(P2pimAdjudicator.abi, this.adjudicatorAddress);
+      contract.methods
+        .deposit(this.amount, this.account)
+        .send({from: this.account})
         .on('sending', arg => console.log('sending', arg))
         .on('sent', arg => console.log('sent', arg))
         .on('transactionHash', arg => console.log('transactionHash', arg))
         .on('receipt', arg => console.log('receipt', arg))
         .on('confirmation', arg => console.log('confirmation', arg))
         .on('error', arg => console.log('error', arg))
-        .then(() => this.refreshChainData(this.tokenContract, this.chainId));
+        .then(() => console.log('TODO: deposit done: should refresh automatically the data'));
     },
     approveAllowance: function () {
-      this.tokenContract.methods
+      const contract = new this.web3.eth.Contract(IERC20.abi, this.inputToken);
+      contract.methods
         .approve(this.p2pimAdjudicatorContract.options.address, MAX_UINT256)
-        .send({from: this.ethAddress})
+        .send({from: this.account})
         .on('sending', arg => console.log('sending', arg))
         .on('sent', arg => console.log('sent', arg))
         .on('transactionHash', arg => console.log('transactionHash', arg))
         .on('receipt', arg => console.log('receipt', arg))
         .on('confirmation', arg => console.log('confirmation', arg))
         .on('error', arg => console.log('error', arg))
-        .then(() => this.refreshChainData(this.tokenContract, this.chainId));
+        .then(() =>  console.log('TODO: allowance done: should refresh automatically the data'));
     },
-    refreshChainData: function(tokenContract, p2pimAdjudicatorContract, chainId) {
-      if (tokenContract && p2pimAdjudicatorContract && chainId) {
-        tokenContract.methods.balanceOf(this.ethAddress).call()
-          .then(balance => {
-            if (this.tokenContract === tokenContract && this.chainId === chainId) {
-              this.balance = new BN(balance);
-            }
-          })
-          .catch((err) => console.log('TODO: Error %s', err));
-        tokenContract.methods.allowance(this.ethAddress, p2pimAdjudicatorContract.options.address).call()
-          .then(allowance => {
-            if (this.tokenContract === tokenContract && this.chainId === chainId) {
-              this.allowance = new BN(allowance);
-            }
-          })
-          .catch(err => console.log('TODO: Error: ', err));
-      } else {
-        this.balance = null;
-        this.allowance = null;
-      }
-    }
-  }
-
+  },
 }
 </script>

@@ -23,58 +23,36 @@
 </template>
 
 <script>
+
 export default {
   name: 'WalletConnector',
   data: function () {
     return {
       buttonDisabled: false,
       spinner: false,
-      address: null,
     }
   },
   computed: {
+    address: function () {
+      console.log("Address", this.$store.state.account);
+      return this.$store.state.account;
+    },
     shortAddress: function () {
       return this.address.substring(0, 6) + '...' + this.address.substring(this.address.length - 4);
     },
   },
-  watch: {
-    address(newAddress) {
-      this.$emit('change', newAddress);
-    }
-  },
   methods: {
-    handleChainChanged: function (chainId) {
-      console.log(chainId);
-    },
-    handleAccountsChanged: function (accounts) {
-      if (accounts.length === 0) {
-        this.address = null;
-      } else {
-        this.address = accounts[0];
-      }
-    },
     connectWallet: async function () {
-      if (!window.ethereum) {
-        window.alert('There is no provider!')
-      } else {
-        this.buttonDisabled = true;
-        this.spinner = true;
-        try {
-          const ethereum = window.ethereum
-          const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-          await this.handleAccountsChanged(accounts);
-
-          ethereum.on('chainChanged', this.handleChainChanged);
-          ethereum.on('accountsChanged', this.handleAccountsChanged);
-
-          const chainId = await ethereum.request({ method: 'eth_chainId'});
-          this.handleChainChanged(chainId);
-        } catch (error) {
-          console.error(error);
-        } finally {
-          this.spinner = false;
-          this.buttonDisabled = false;
-        }
+      this.buttonDisabled = true;
+      this.spinner = true;
+      try {
+        // TODO: Import enum from other module
+        await this.$store.dispatch('detectEthereum');
+      } catch (error) {
+        console.error("TODO", error);
+      } finally {
+        this.spinner = false;
+        this.buttonDisabled = false;
       }
     }
   },
